@@ -455,9 +455,18 @@ static void update_all_animations(void) {
 // Enhanced status indication with patterns
 static int indicate_battery_enhanced(void) {
     uint8_t battery_level = zmk_battery_state_of_charge();
+
+    // At boot the first ADC sample may not be ready yet, so state-of-charge
+    // reads 0. Wait briefly for a valid reading before falling back to the
+    // "missing"/magenta color (matches the non-WS2812 indicate_battery() path).
+    for (int retry = 0; battery_level == 0 && retry < 30; retry++) {
+        k_sleep(K_MSEC(100));
+        battery_level = zmk_battery_state_of_charge();
+    }
+
     uint8_t color_idx = 0;
     struct animation_state pattern = {0};
-    
+
     if (battery_level == 0) {
         color_idx = CONFIG_RGBLED_WIDGET_BATTERY_COLOR_MISSING;
         pattern.type = ANIM_BLINK;
@@ -603,6 +612,13 @@ static int indicate_layer_enhanced(bool use_shared) {
 // Simplified versions without animations
 static int indicate_battery_enhanced(void) {
     uint8_t battery_level = zmk_battery_state_of_charge();
+
+    // Wait briefly for the first valid ADC reading at boot (see note above).
+    for (int retry = 0; battery_level == 0 && retry < 30; retry++) {
+        k_sleep(K_MSEC(100));
+        battery_level = zmk_battery_state_of_charge();
+    }
+
     uint8_t color_idx = get_battery_color(battery_level);
     return set_status_led(STATUS_BATTERY, color_idx, 0, true);
 }
