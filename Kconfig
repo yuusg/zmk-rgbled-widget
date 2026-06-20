@@ -23,11 +23,10 @@ config RGBLED_WIDGET_WS2812
 
 if RGBLED_WIDGET_WS2812
 
-config LED_STRIP
-    default y
-    
-config WS2812_STRIP
-    default y
+# LED_STRIP / WS2812_STRIP drivers are enabled via the board/shield .conf
+# (CONFIG_LED_STRIP=y, CONFIG_WS2812_STRIP=y). Do not redefine them here:
+# Zephyr 4.1 Kconfig treats a typeless redefinition as a fatal error
+# ("defined without a type" -> "Aborting due to Kconfig warnings").
 
 config RGBLED_WIDGET_LED_COUNT
     int "Number of LEDs in the strip"
